@@ -1,6 +1,7 @@
 package com.highnoon;
 
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,5 +21,10 @@ public class HighNoon implements ModInitializer {
 		// Proceed with mild caution.
 
 		LOGGER.info("Hello Fabric world!");
+
+		DuelManager.init();        // registers event listeners
+		CommandRegistrationCallback.EVENT.register(DuelCommands::register);
+		// load persisted stats
+		// StatsManager.loadAll();
 	}
 }
