@@ -33,9 +33,8 @@ public class DuelCommands {
       // /duel <player>
       .then(argument("target", EntityArgumentType.player())
         .executes((context) -> {
-      // For versions below 1.19, replace "Text.literal" with "new LiteralText".
-      // For versions below 1.20, remode "() ->" directly.
-      context.getSource().sendFeedback(() -> Text.literal("Called /foo with no arguments"), false);return 1;
+          DuelManager.challenge(context.getSource(), EntityArgumentType.getPlayer(context, "target"));
+          return 1;
     })
         // .executes(ctx -> DuelManager.challenge(ctx.getSource(), EntityArgumentType.getPlayer(ctx, "target")))
         // .then(literal("wager")

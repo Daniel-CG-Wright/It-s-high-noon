@@ -8,11 +8,14 @@ import java.util.UUID;
 import com.mojang.brigadier.Command;
 
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
+import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.AfterDeath;
+import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.AllowDeath;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
+
 
 
 public class DuelManager {
@@ -28,38 +31,48 @@ public class DuelManager {
     ServerPlayConnectionEvents.DISCONNECT.register((player, server) -> onDisconnect(player));
   }
 
-//   public static Command<ServerCommandSource> challenge(ServerCommandSource src, ServerPlayerEntity target) {
-//     ServerPlayerEntity challenger = src.getPlayer();
-//     src.sendFeedback(() -> Text.literal("Duel request from " + challenger.getName().getString() + " to " + target.getName().getString()), false);
-//     // pending.put(target.getUuid(), new DuelSession(challenger, target));
-//     // src.sendFeedback(() -> Text.literal("Duel request sent to " + target.getName().getString()), false);
-//     // target.sendMessage(Text.literal(challenger.getName().getString() + " challenged you to a duel. Type `/duel accept` to accept."), false);
-//     return null;
-// }
+  public static void challenge(ServerCommandSource src, ServerPlayerEntity target) throws IllegalStateException {
+    ServerPlayerEntity challenger = src.getPlayer();
+    // Assign the pending challenge to the target's uuid
+    if (pending.get(target.getUuid()) != null || active.get(target.getUuid()) != null ||
+      pending.get(challenger.getUuid()) != null || active.get(challenger.getUuid()) != null) {
+        throw new IllegalStateException("Either you or your opponent already has a duel pending or active.");
+      }
 
-//   public static void acceptChallenge(ServerPlayerEntity target) {
-//     DuelSession session = pending.remove(target.getUuid());
-//     if (session == null) throw new CommandException(Text.literal("No duel pending."));
-//     startDuel(session);
-//   }
+    pending.put(target.getUuid(), new DuelSession(challenger, target));
+    src.sendFeedback(() -> Text.literal("Duel request sent to " + target.getName().getString()), false);
+    target.sendMessage(Text.literal(challenger.getName().getString() + " challenged you to a duel. Type `/duel accept` to accept."), false);
+}
 
-//   private static void startDuel(DuelSession session) {
-//     active.put(session.challenger.getUuid(), session);
-//     active.put(session.target.getUuid(), session);
-//     session.recordOriginalPositions();
-//     ArenaManager.generateArena(session);
-//     session.teleportToArena();
-//     session.startTimer(() -> onDuelTimeout(session));
-//     broadcast(Text.literal("// DUEL START: " + session.challenger.getName().getString() + " vs. " + session.target.getName().getString()));
-//   }
+  public static void acceptChallenge(ServerCommandSource source, ServerPlayerEntity target) throws IllegalStateException {
+    DuelSession session = pending.remove(target.getUuid());
+    if (session == null) throw new IllegalStateException("No duel pending.");
+    startDuel(source, session);
+  }
 
-//   // On player death inside duel
-//   private static void onPlayerDeath(ServerPlayerEntity dead, ServerPlayerEntity _orig, boolean alive) {
-//     DuelSession session = active.get(dead.getUuid());
-//     if (session != null) {
-//       session.onDeath(dead, alive);
-//     }
-//   }
+  private static void startDuel(ServerCommandSource source, DuelSession session) {
+    // Assign the session to the challenger and the challenged
+    active.put(session.getChallenger().getUuid(), session);
+    active.put(session.getChallenged().getUuid(), session);
+    session.recordOriginalPositions();
+    ArenaManager.generateArena(session);
+    session.beginBattle(() -> onDuelTimeout(session));
+    source.getServer().getPlayerManager().broadcast(
+      Text.literal("// DUEL START: " + session.getChallenger().getName().getString() + " vs. " + session.getChallenged().getName().getString())
+      , false);
+  }
+
+  // On player death
+  private static void onPlayerDeath(AllowDeath listener) {
+    // If the player was in a duel, call the right session function.
+    if (listener instanceof ServerPlayerEntity) {
+      ServerPlayerEntity player = (ServerPlayerEntity) listener;
+      DuelSession session = active.get(player.getUuid());
+      if (session != null) {
+        session.onDeath(player);
+      }
+    }
+  }
 
   private static void onDisconnect(ServerPlayNetworkHandler player) {
     // DuelSession session = active.get(player.getUuid());
@@ -67,7 +80,7 @@ public class DuelManager {
     
   }
 
-//   private static void onDuelTimeout(DuelSession session) {
-//     session.endDraw();
-//   }
+  private static void onDuelTimeout(DuelSession session) {
+    session.endDraw();
+  }
 }

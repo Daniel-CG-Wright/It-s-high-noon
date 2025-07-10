@@ -2,6 +2,8 @@ package com.highnoon;
 
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
+import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +26,7 @@ public class HighNoon implements ModInitializer {
 
 		DuelManager.init();        // registers event listeners
 		CommandRegistrationCallback.EVENT.register(DuelCommands::register);
+		ServerLivingEntityEvents.ALLOW_DEATH.register(DuelManager::onPlayerDeath);
 		// load persisted stats
 		// StatsManager.loadAll();
 	}
