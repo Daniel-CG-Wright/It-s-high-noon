@@ -2,7 +2,7 @@
 	"schemaVersion": 1,
 	"id": "high_noon",
 	"version": "${version}",
-	"name": "High Noon",
+	"name": "Duel",
 	"description": "This mod lets you have duels in survival mode with the /duel command, without losing your items if you lose the duel.",
 	"authors": [
 		"_DanZeMan_",

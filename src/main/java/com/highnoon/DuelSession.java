@@ -19,9 +19,6 @@ public class DuelSession {
     /** A challenged individual */
     private ServerPlayerEntity challenged;
 
-    private ItemStack[] challengerInventory;
-    private ItemStack[] challengedInventory;
-
     /** Where challenger last was when duel was accepted. */
     private Vec3d challengerOrigin;
     private float challengerHealth;
@@ -55,8 +52,8 @@ public class DuelSession {
         challengerHealth = challenger.getHealth();
         challengedHealth = challenged.getHealth();
         // Record inventory items
-        challengerInventory = new ItemStack[challenger.getInventory().size()];
-        challengedInventory = new ItemStack[challenged.getInventory().size()];
+        // challengerInventory = new ItemStack[challenger.getInventory().size()];
+        // challengedInventory = new ItemStack[challenged.getInventory().size()];
         // for (int i = 0; i < challengerInventory.length; i++) {
         //     challengerInventory[i] = challenger.getInventory().getStack(i).copy();
         // }
@@ -108,7 +105,6 @@ public class DuelSession {
         //     challenged.getInventory().setStack(i, challengedInventory[i]);
         // }
 
-        // TODO remove wager from inventory if appropriate here.
     }
 
     public void onLoss(ServerPlayerEntity loser) {

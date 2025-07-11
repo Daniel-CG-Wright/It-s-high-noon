@@ -18,6 +18,9 @@ public class KeepInvOnPvpDeath {
      * For when a player dies, keep inventory if killed by player
      */
     public static void onPlayerDeathProper(LivingEntity entity, DamageSource damageSource) {
+        if (currentlyDeadByPlayer == null) {
+            currentlyDeadByPlayer = new LinkedList<UUID>();
+        }
         if (damageSource.getAttacker() instanceof ServerPlayerEntity && entity instanceof ServerPlayerEntity) {
             ServerPlayerEntity player = (ServerPlayerEntity) entity;
             // Died to a player, so save inventroy and experience then clear inv
@@ -28,7 +31,9 @@ public class KeepInvOnPvpDeath {
 
     public static void onRespawn(ServerPlayerEntity oldPlayer, ServerPlayerEntity newPlayer, boolean alive) {
         if (currentlyDeadByPlayer.contains(oldPlayer.getUuid()) && !alive) {
+            
             oldPlayer.getInventory().clone(newPlayer.getInventory());
+            newPlayer.setHealth(20.0f);
         }
     }
 }

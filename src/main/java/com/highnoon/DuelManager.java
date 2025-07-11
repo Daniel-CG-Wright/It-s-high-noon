@@ -12,6 +12,7 @@ import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.AfterDeath;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.AllowDeath;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.minecraft.block.entity.VaultBlockEntity.Server;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.server.command.ServerCommandSource;
@@ -55,7 +56,7 @@ public class DuelManager {
 
     pending.put(target.getUuid(), new DuelSession(challenger, target));
     src.sendFeedback(() -> Text.literal("Duel request sent to " + target.getName().getString()), false);
-    target.sendMessage(Text.literal(challenger.getName().getString() + " challenged you to a duel. Type `/duel accept` to accept."), false);
+    src.getServer().getPlayerManager().broadcast((Text.literal(challenger.getName().getString() + " challenged " + target.getName().toString() + " to a duel. Type `/duel accept` to accept.")), false);
 }
 
   public static int acceptChallenge(CommandContext<ServerCommandSource> context, ServerPlayerEntity target) throws IllegalStateException {
@@ -63,6 +64,12 @@ public class DuelManager {
     System.out.println(session);
     if (session == null) throw new IllegalStateException("No duel pending.");
     startDuel(context, session);
+    return 1;
+  }
+
+  public static int rejectChallenge(CommandContext<ServerCommandSource> context, ServerPlayerEntity target) throws IllegalStateException {
+    DuelSession session = pending.remove(target.getUuid());
+    context.getSource().sendFeedback(() -> Text.literal("All duels rejected."), false);
     return 1;
   }
 

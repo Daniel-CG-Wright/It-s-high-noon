@@ -54,6 +54,9 @@ public class DuelCommands {
       .then(literal("accept")
         .executes(ctx -> DuelManager.acceptChallenge(ctx, ctx.getSource().getPlayer()) )
       )
+      // /duel reject
+      .then(literal("reject"))
+        .executes(ctx -> DuelManager.rejectChallenge(ctx, ctx.getSource().getPlayer()))
     //   // /duel stats [player]
     //   .then(literal("stats")
     //     .executes(ctx -> showStats(ctx.getSource().getPlayer(), null))
