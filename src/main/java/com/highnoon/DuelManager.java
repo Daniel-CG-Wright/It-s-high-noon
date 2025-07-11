@@ -46,7 +46,8 @@ public class DuelManager {
     }
   } 
 
-  public static void challenge(ServerCommandSource src, ServerPlayerEntity target) throws IllegalStateException {
+  public static int challenge(ServerCommandSource src, ServerPlayerEntity target) throws IllegalStateException {
+    System.out.println("Challenge run");
     ServerPlayerEntity challenger = src.getPlayer();
     // Assign the pending challenge to the target's uuid
     if (pending.get(target.getUuid()) != null || active.get(target.getUuid()) != null ||
@@ -57,7 +58,23 @@ public class DuelManager {
     pending.put(target.getUuid(), new DuelSession(challenger, target));
     src.sendFeedback(() -> Text.literal("Duel request sent to " + target.getName().getString()), false);
     src.getServer().getPlayerManager().broadcast((Text.literal(challenger.getName().getString() + " challenged " + target.getName().toString() + " to a duel. Type `/duel accept` to accept.")), false);
-}
+    return 1;
+  }
+
+  public static int challengeWithWager(ServerCommandSource src, ServerPlayerEntity target, int wager) throws IllegalStateException {
+    challenge(src, target);
+    System.out.println("Challenge with wager run");
+    DuelSession session = pending.get(target.getUuid());
+    if (src.getPlayer().experienceLevel < wager || target.experienceLevel < wager)
+    {
+      src.getServer().getPlayerManager().broadcast(Text.literal("One of you did not have enough experience for the wager."), false);
+    }
+    else if (session != null) {
+      session.addWager(wager);
+      src.getServer().getPlayerManager().broadcast(Text.literal("This duel has a wager of " + wager + " levels!"), false);
+    }
+    return 1;
+  }
 
   public static int acceptChallenge(CommandContext<ServerCommandSource> context, ServerPlayerEntity target) throws IllegalStateException {
     DuelSession session = pending.remove(target.getUuid());
@@ -77,7 +94,7 @@ public class DuelManager {
     // Assign the session to the challenger and the challenged
     active.put(session.getChallenger().getUuid(), session);
     active.put(session.getChallenged().getUuid(), session);
-    ArenaManager.generateArena(session);
+    ArenaManager.generateArena(context, session);
     session.beginBattle(context);
     context.getSource().getServer().getPlayerManager().broadcast(
       Text.literal("// DUEL START: " + session.getChallenger().getName().getString() + " vs. " + session.getChallenged().getName().getString())

@@ -31,6 +31,10 @@ public class DuelSession {
     private int ticksLeft = -1;
     private CommandContext<ServerCommandSource> context;
 
+    private Vec3d arenaPosition;
+
+    private int levelsWaged = 0;
+
     /** when the duel is first proposed, but may not yet be accepted. */
     public DuelSession(ServerPlayerEntity challenger, ServerPlayerEntity challenged) {
         this.challenger = challenger;
@@ -45,6 +49,12 @@ public class DuelSession {
     public ServerPlayerEntity getChallenged() {
         return challenged;
     }
+
+    public void addWager(int levels) {
+        levelsWaged = levels;
+    }
+
+    public int getWager() { return levelsWaged; }
 
     private void recordOriginalPositions() {
         challengerOrigin = challenger.getPos();
@@ -96,7 +106,6 @@ public class DuelSession {
         challenged.setPosition(challengedOrigin);
         challenger.setHealth(challengerHealth);
         challenged.setHealth(challengedHealth);
-
         
         // for (int i = 0; i < challengerInventory.length; i++) {
         //     challenger.getInventory().setStack(i, challengerInventory[i]);
@@ -114,14 +123,30 @@ public class DuelSession {
         
         // Restore original coordinates and inventory
         restore();
+
+        // Give the winner a wager and take it from the loser
+        if (levelsWaged != 0) {
+            winner.setExperienceLevel(winner.experienceLevel + levelsWaged);
+            loser.setExperienceLevel(loser.experienceLevel - levelsWaged);
+        }
+        ArenaManager.clearArena(context, this);
     }
 
     public void endDraw() {
         // Restore original coordinates and inventory, and add a draw to each player's stats.
         restore();
+        ArenaManager.clearArena(context, this);
 
         context.getSource().getServer().getPlayerManager().broadcast(
             Text.literal(challenger.getName().getString() + " and " + challenged.getName().getString() + " drew their duel"), false);
+    }
+
+    public void setArenaLocation(Vec3d northwestCorner) {
+        arenaPosition = northwestCorner;
+    }
+
+    public Vec3d getArenaLocation() {
+        return arenaPosition;
     }
 
 }

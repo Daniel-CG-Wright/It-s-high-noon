@@ -39,16 +39,12 @@ public class DuelCommands {
       literal("duel")
       // /duel <player>
       .then(argument("target", EntityArgumentType.player())
-        .executes((context) -> {
-          DuelManager.challenge(context.getSource(), EntityArgumentType.getPlayer(context, "target"));
-          return 1;
-    })
-        // .executes(ctx -> DuelManager.challenge(ctx.getSource(), EntityArgumentType.getPlayer(ctx, "target")))
-        // .then(literal("wager")
-        //   .then(argument("item", ItemStackArgumentType.itemStack(null))
-        //     .executes(ctx -> challengeWithWager())
-        //   )
-        // )
+        .executes(ctx -> DuelManager.challenge(ctx.getSource(), EntityArgumentType.getPlayer(ctx, "target")))
+        .then(literal("wager")
+          .then(argument("levels", IntegerArgumentType.integer(1, 10))
+            .executes(ctx -> DuelManager.challengeWithWager(ctx.getSource(), EntityArgumentType.getPlayer(ctx, "target"), IntegerArgumentType.getInteger(ctx, "wager")))
+          )
+        )
       )
       // /duel accept
       .then(literal("accept")
