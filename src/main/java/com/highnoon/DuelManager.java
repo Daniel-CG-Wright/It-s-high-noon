@@ -11,6 +11,8 @@ import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.AfterDeath;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.AllowDeath;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -63,15 +65,17 @@ public class DuelManager {
   }
 
   // On player death
-  private static void onPlayerDeath(AllowDeath listener) {
+  public static boolean onPlayerDeath(LivingEntity entity, DamageSource _src, float _dmg) {
     // If the player was in a duel, call the right session function.
-    if (listener instanceof ServerPlayerEntity) {
-      ServerPlayerEntity player = (ServerPlayerEntity) listener;
+    if (entity instanceof ServerPlayerEntity) {
+      ServerPlayerEntity player = (ServerPlayerEntity) entity;
       DuelSession session = active.get(player.getUuid());
       if (session != null) {
         session.onDeath(player);
+        return false; // Don't actually kill the player
       }
     }
+    return true;
   }
 
   private static void onDisconnect(ServerPlayNetworkHandler player) {

@@ -5,13 +5,11 @@ import java.util.TimerTask;
 import java.util.function.Supplier;
 
 import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.registry.RegistryWrapper.WrapperLookup;
+import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.PersistentState;
 
-public class DuelSession extends PersistentState {
+public class DuelSession {
     public static final int TIMER_SECONDS = 180;
     
     /** Initiator of challenge */
@@ -19,16 +17,14 @@ public class DuelSession extends PersistentState {
     /** A challenged individual */
     private ServerPlayerEntity challenged;
 
-    private PlayerInventory challengerInventory;
-    private PlayerInventory challengedInventory;
+    private ItemStack[] challengerInventory;
+    private ItemStack[] challengedInventory;
 
     /** Where challenger last was when duel was accepted. */
     private Vec3d challengerOrigin;
-    private PlayerInventory challengerInventoryCopy;
-    private double challengerHealth;
+    private float challengerHealth;
     private Vec3d challengedOrigin;
-    private PlayerInventory challengedInventoryCopy;
-    private double challengedHealth;
+    private float challengedHealth;
 
     private Vec3d challengerSpawn;
     private Vec3d challengedSpawn;
@@ -48,15 +44,23 @@ public class DuelSession extends PersistentState {
         return challenged;
     }
 
-    @Override
-    public NbtCompound writeNbt(NbtCompound nbt, WrapperLookup wrapperLookup) {
-        NbtCompound 
-    }
-
     public void recordOriginalPositions() {
         challengerOrigin = challenger.getPos();
         challengedOrigin = challenged.getPos();
         challengerHealth = challenger.getHealth();
+        challengedHealth = challenged.getHealth();
+        // Record inventory items
+        challengerInventory = new ItemStack[challenger.getInventory().size()];
+        challengedInventory = new ItemStack[challenged.getInventory().size()];
+        for (int i = 0; i < challengerInventory.length; i++) {
+            challengerInventory[i] = challenger.getInventory().getStack(i).copy();
+            System.out.println("Item: " + challengerInventory[i].getName().toString() + ", count: " + challengerInventory[i].getCount());
+        }
+        for (int i = 0; i < challengedInventory.length; i++) {
+            challengedInventory[i] = challenged.getInventory().getStack(i).copy();
+        }
+
+
     }
 
     public void saveArenaSpawnPoints(Vec3d challengerSpawn, Vec3d challengedSpawn) {
@@ -84,16 +88,29 @@ public class DuelSession extends PersistentState {
     private void restore() {
         challenger.setPosition(challengerOrigin);
         challenged.setPosition(challengedOrigin);
+        challenger.setHealth(challengerHealth);
+        challenged.setHealth(challengedHealth);
+
+        System.out.println("restoring");
         
+        for (int i = 0; i < challengerInventory.length; i++) {
+            challenger.getInventory().setStack(i, challengerInventory[i]);
+            System.out.println("Item: " + challengerInventory[i].getName().toString() + ", count: " + challengerInventory[i].getCount());
+        }
+        for (int i = 0; i < challengedInventory.length; i++) {
+            challenged.getInventory().setStack(i, challengedInventory[i]);
+        }
+
+        // TODO remove wager if appropriate here.
     }
 
     public void onDeath(ServerPlayerEntity loser) {
-        
+        // Restore the players, add a loss stat and a win stat.
     }
 
     public void endDraw() {
         // Restore original coordinates and inventory, and add a draw to each player's stats.
-        
+        restore();
 
     }
 
