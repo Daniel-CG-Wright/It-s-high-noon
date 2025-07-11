@@ -13,9 +13,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.Vec3d;
 
-public class DuelSession {
-    public static final int TIMER_SECONDS = 180;
-    
+public class DuelSession {    
     /** Initiator of challenge */
     private ServerPlayerEntity challenger;
     /** A challenged individual */
@@ -59,12 +57,12 @@ public class DuelSession {
         // Record inventory items
         challengerInventory = new ItemStack[challenger.getInventory().size()];
         challengedInventory = new ItemStack[challenged.getInventory().size()];
-        for (int i = 0; i < challengerInventory.length; i++) {
-            challengerInventory[i] = challenger.getInventory().getStack(i).copy();
-        }
-        for (int i = 0; i < challengedInventory.length; i++) {
-            challengedInventory[i] = challenged.getInventory().getStack(i).copy();
-        }
+        // for (int i = 0; i < challengerInventory.length; i++) {
+        //     challengerInventory[i] = challenger.getInventory().getStack(i).copy();
+        // }
+        // for (int i = 0; i < challengedInventory.length; i++) {
+        //     challengedInventory[i] = challenged.getInventory().getStack(i).copy();
+        // }
 
 
     }
@@ -81,7 +79,7 @@ public class DuelSession {
         recordOriginalPositions();
         challenger.setPosition(challengerSpawn);
         challenged.setPosition(challengedSpawn);
-        ticksLeft = 3600; // 180 * 20 for 3 minutes
+        ticksLeft = 200; //3600; // 180 * 20 for 3 minutes
         this.context = context;
     }
 
@@ -103,18 +101,23 @@ public class DuelSession {
         challenged.setHealth(challengedHealth);
 
         
-        for (int i = 0; i < challengerInventory.length; i++) {
-            challenger.getInventory().setStack(i, challengerInventory[i]);
-        }
-        for (int i = 0; i < challengedInventory.length; i++) {
-            challenged.getInventory().setStack(i, challengedInventory[i]);
-        }
+        // for (int i = 0; i < challengerInventory.length; i++) {
+        //     challenger.getInventory().setStack(i, challengerInventory[i]);
+        // }
+        // for (int i = 0; i < challengedInventory.length; i++) {
+        //     challenged.getInventory().setStack(i, challengedInventory[i]);
+        // }
 
         // TODO remove wager from inventory if appropriate here.
     }
 
-    public void onDeath(ServerPlayerEntity loser) {
-        // Restore the players, add a loss stat and a win stat.
+    public void onLoss(ServerPlayerEntity loser) {
+        ServerPlayerEntity winner = loser.equals(challenger) ? challenged : challenger;
+        context.getSource().getServer().getPlayerManager().broadcast(
+            Text.literal(winner.getName().getString() + " won the duel. " + loser.getName().getString() + " is a loser!"), false);
+        
+        // Restore original coordinates and inventory
+        restore();
     }
 
     public void endDraw() {

@@ -25,7 +25,9 @@ public class HighNoon implements ModInitializer {
 		DuelManager.init();        // registers event listeners
 		CommandRegistrationCallback.EVENT.register(DuelCommands::register);
 		ServerLivingEntityEvents.ALLOW_DEATH.register(DuelManager::onPlayerDeath);
-		ServerTickEvents.END_WORLD_TICK.register(DuelManager::timer);
+		ServerTickEvents.END_WORLD_TICK.register(DuelManager::tick);
+		ServerLivingEntityEvents.AFTER_DEATH.register(KeepInvOnPvpDeath::onPlayerDeathProper);
+		ServerPlayerEvents.AFTER_RESPAWN.register(KeepInvOnPvpDeath::onRespawn);
 		// load persisted stats
 		// StatsManager.loadAll();
 	}

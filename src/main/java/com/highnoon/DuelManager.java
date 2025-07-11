@@ -60,6 +60,7 @@ public class DuelManager {
 
   public static int acceptChallenge(CommandContext<ServerCommandSource> context, ServerPlayerEntity target) throws IllegalStateException {
     DuelSession session = pending.remove(target.getUuid());
+    System.out.println(session);
     if (session == null) throw new IllegalStateException("No duel pending.");
     startDuel(context, session);
     return 1;
@@ -85,7 +86,7 @@ public class DuelManager {
       ServerPlayerEntity player = (ServerPlayerEntity) entity;
       DuelSession session = active.get(player.getUuid());
       if (session != null) {
-        session.onDeath(player);
+        session.onLoss(player);
         // Remove session from active
         active.remove(session.getChallenged().getUuid());
         active.remove(session.getChallenger().getUuid());
@@ -95,10 +96,14 @@ public class DuelManager {
     return true;
   }
 
-  private static void onDisconnect(ServerPlayNetworkHandler player) {
-    // DuelSession session = active.get(player.getUuid());
-    // if (session != null) session.onDisconnect(player);
-    
+  private static void onDisconnect(ServerPlayNetworkHandler netPlayer) {
+    DuelSession session = active.get(netPlayer.getPlayer().getUuid());
+    if (session != null) {
+      session.onLoss(netPlayer.getPlayer());
+      active.remove(session.getChallenged().getUuid());
+      active.remove(session.getChallenger().getUuid());
+    }
+    pending.remove(netPlayer.getPlayer().getUuid());
   }
 
   private static void onDuelTimeout(DuelSession session) {
