@@ -31,19 +31,7 @@ import static net.minecraft.server.command.CommandManager.*;
 
 
 public class DuelCommands {
-  public static int ticks_delay = -1;
-  public static CommandContext<ServerCommandSource> context_;
-  public static DuelSession session_;
-  public static void timer(ServerWorld world) {
-    // if 100 ticks have passed after our starttime then call the end
-    if (ticks_delay >= 0) { ticks_delay--; }
-    if (ticks_delay == 0) { 
-      context_.getSource().getServer().getPlayerManager().broadcast(
-      Text.literal("// DUEL END after delay: " + session_.getChallenger().getName().getString() + " vs. " + session_.getChallenged().getName().getString())
-      , false);
-      session_.endDraw();
-    }
-  } 
+  
   public static void register(CommandDispatcher<ServerCommandSource> disp,
         CommandRegistryAccess commandRegistryAccess,
         CommandManager.RegistrationEnvironment registrationEnvironment) {
@@ -52,15 +40,7 @@ public class DuelCommands {
       // /duel <player>
       .then(argument("target", EntityArgumentType.player())
         .executes((context) -> {
-          // DuelManager.challenge(context.getSource(), EntityArgumentType.getPlayer(context, "target"));
-          DuelSession session = new DuelSession(context.getSource().getPlayer(), EntityArgumentType.getPlayer(context, "target"));
-          session.recordOriginalPositions();
-      context.getSource().getServer().getPlayerManager().broadcast(
-      Text.literal("// DUEL START: " + session.getChallenger().getName().getString() + " vs. " + session.getChallenged().getName().getString())
-      , false);
-          session_ = session;
-          context_ = context;
-          ticks_delay = 500;
+          DuelManager.challenge(context.getSource(), EntityArgumentType.getPlayer(context, "target"));
           return 1;
     })
         // .executes(ctx -> DuelManager.challenge(ctx.getSource(), EntityArgumentType.getPlayer(ctx, "target")))
@@ -70,10 +50,10 @@ public class DuelCommands {
         //   )
         // )
       )
-    //   // /duel accept
-    //   .then(literal("accept")
-    //     .executes(ctx -> acceptChallenge(ctx.getSource().getPlayer()))
-    //   )
+      // /duel accept
+      .then(literal("accept")
+        .executes(ctx -> DuelManager.acceptChallenge(ctx, ctx.getSource().getPlayer()) )
+      )
     //   // /duel stats [player]
     //   .then(literal("stats")
     //     .executes(ctx -> showStats(ctx.getSource().getPlayer(), null))

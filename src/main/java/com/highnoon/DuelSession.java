@@ -4,9 +4,13 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.function.Supplier;
 
+import com.mojang.brigadier.context.CommandContext;
+
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.Text;
 import net.minecraft.util.math.Vec3d;
 
 public class DuelSession {
@@ -29,6 +33,9 @@ public class DuelSession {
     private Vec3d challengerSpawn;
     private Vec3d challengedSpawn;
 
+    private int ticksLeft = -1;
+    private CommandContext<ServerCommandSource> context;
+
     /** when the duel is first proposed, but may not yet be accepted. */
     public DuelSession(ServerPlayerEntity challenger, ServerPlayerEntity challenged) {
         this.challenger = challenger;
@@ -44,7 +51,7 @@ public class DuelSession {
         return challenged;
     }
 
-    public void recordOriginalPositions() {
+    private void recordOriginalPositions() {
         challengerOrigin = challenger.getPos();
         challengedOrigin = challenged.getPos();
         challengerHealth = challenger.getHealth();
@@ -54,7 +61,6 @@ public class DuelSession {
         challengedInventory = new ItemStack[challenged.getInventory().size()];
         for (int i = 0; i < challengerInventory.length; i++) {
             challengerInventory[i] = challenger.getInventory().getStack(i).copy();
-            System.out.println("Item: " + challengerInventory[i].getName().toString() + ", count: " + challengerInventory[i].getCount());
         }
         for (int i = 0; i < challengedInventory.length; i++) {
             challengedInventory[i] = challenged.getInventory().getStack(i).copy();
@@ -70,19 +76,24 @@ public class DuelSession {
 
     /**
      * TP players to the spawns and then begin the battle timer.
-     * @param onTimeout Functiont to call when the battle timer ends.
      */
-    public void beginBattle(Runnable onTimeout) {
+    public void beginBattle(CommandContext<ServerCommandSource> context) {
+        recordOriginalPositions();
         challenger.setPosition(challengerSpawn);
         challenged.setPosition(challengedSpawn);
-        // Start a 3 minute timer
-        new Timer().schedule(new TimerTask() {
-            @Override
-            public void run() {
-                onTimeout.run();
-            }
-        }, TIMER_SECONDS * 1000L);
-        
+        ticksLeft = 3600; // 180 * 20 for 3 minutes
+        this.context = context;
+    }
+
+
+    public boolean tick() {
+        if (ticksLeft >= 0) {
+            ticksLeft--;
+        }
+        if (ticksLeft == 0) {
+            return true;
+        }
+        return false;
     }
 
     private void restore() {
@@ -91,17 +102,15 @@ public class DuelSession {
         challenger.setHealth(challengerHealth);
         challenged.setHealth(challengedHealth);
 
-        System.out.println("restoring");
         
         for (int i = 0; i < challengerInventory.length; i++) {
             challenger.getInventory().setStack(i, challengerInventory[i]);
-            System.out.println("Item: " + challengerInventory[i].getName().toString() + ", count: " + challengerInventory[i].getCount());
         }
         for (int i = 0; i < challengedInventory.length; i++) {
             challenged.getInventory().setStack(i, challengedInventory[i]);
         }
 
-        // TODO remove wager if appropriate here.
+        // TODO remove wager from inventory if appropriate here.
     }
 
     public void onDeath(ServerPlayerEntity loser) {
@@ -112,6 +121,8 @@ public class DuelSession {
         // Restore original coordinates and inventory, and add a draw to each player's stats.
         restore();
 
+        context.getSource().getServer().getPlayerManager().broadcast(
+            Text.literal(challenger.getName().getString() + " and " + challenged.getName().getString() + " drew their duel"), false);
     }
 
 }

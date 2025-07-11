@@ -22,13 +22,10 @@ public class HighNoon implements ModInitializer {
 		// This code runs as soon as Minecraft is in a mod-load-ready state.
 		// However, some things (like resources) may still be uninitialized.
 		// Proceed with mild caution.
-
-		LOGGER.info("Hello Fabric world!");
-
 		DuelManager.init();        // registers event listeners
 		CommandRegistrationCallback.EVENT.register(DuelCommands::register);
 		ServerLivingEntityEvents.ALLOW_DEATH.register(DuelManager::onPlayerDeath);
-		ServerTickEvents.END_WORLD_TICK.register(DuelCommands::timer);
+		ServerTickEvents.END_WORLD_TICK.register(DuelManager::timer);
 		// load persisted stats
 		// StatsManager.loadAll();
 	}
