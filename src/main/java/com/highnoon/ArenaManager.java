@@ -10,7 +10,9 @@ import net.minecraft.util.math.Vec3d;
 
 public class ArenaManager {
     
-    public static final int ARENA_SIZE = 50;
+    public static final int ARENA_SIZE_X = 50;
+    public static final int ARENA_SIZE_Z = 32;
+    
 
     public static void generateArena(CommandContext<ServerCommandSource> context, DuelSession session) {
         // Get a random position between -10000 and 10000 x and z, and then put up to 1000y
@@ -18,17 +20,19 @@ public class ArenaManager {
         double x = session.getChallenger().getPos().x + Math.random() * 500;
         double z = session.getChallenger().getPos().z + Math.random() * 500;
 
-        Vec3d northwestCorner = new Vec3d(x, 200, z);
+        Vec3d northwestCorner = new Vec3d(x, 300, z);
         ServerWorld world = context.getSource().getWorld();
         
         // Make an obsidian square
-        for (int i = 0; i < ARENA_SIZE; i++) {
-            for (int j = 0; j < ARENA_SIZE; j++) {
+        // TODO make floor 3 deep
+        for (int i = 0; i < ARENA_SIZE_X; i++) {
+            for (int j = 0; j < ARENA_SIZE_Z; j++) {
                 world.setBlockState(new BlockPos((int) northwestCorner.x + i, (int) northwestCorner.y, (int) northwestCorner.z + j), Blocks.STONE_BRICKS.getDefaultState());
             }
         }
 
         // Build barrier walls 20 blocks tall around the arena
+        // TODO make the arena clear the top 20 blocks.
         for (int i = 0; i < ARENA_SIZE; i++) {
             for (int h = 1; h <= 20; h++) {
             // North wall
