@@ -80,7 +80,7 @@ public class DuelSession {
         recordOriginalPositions();
         challenger.setPosition(challengerSpawn);
         challenged.setPosition(challengedSpawn);
-        ticksLeft = 200; //3600; // 180 * 20 for 3 minutes
+        ticksLeft = 21600; // 180 * 20 for 3 minutes
         this.context = context;
     }
 

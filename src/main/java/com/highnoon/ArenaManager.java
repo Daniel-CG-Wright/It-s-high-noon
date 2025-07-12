@@ -10,15 +10,15 @@ import net.minecraft.util.math.Vec3d;
 
 public class ArenaManager {
     
-    public static final int ARENA_SIZE = 150;
+    public static final int ARENA_SIZE = 50;
 
     public static void generateArena(CommandContext<ServerCommandSource> context, DuelSession session) {
         // Get a random position between -10000 and 10000 x and z, and then put up to 1000y
         // Generate random x and z between -10000 and 10000, y between 64 and 1000
-        double x = -10000 + Math.random() * 20000;
-        double z = -10000 + Math.random() * 20000;
+        double x = session.getChallenger().getPos().x + Math.random() * 500;
+        double z = session.getChallenger().getPos().z + Math.random() * 500;
 
-        Vec3d northwestCorner = new Vec3d(x, 1000, z);
+        Vec3d northwestCorner = new Vec3d(x, 200, z);
         ServerWorld world = context.getSource().getWorld();
         
         // Make an obsidian square

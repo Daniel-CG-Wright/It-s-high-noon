@@ -11,27 +11,29 @@ import net.minecraft.server.network.ServerPlayerEntity;
 
 public class KeepInvOnPvpDeath {
     
-    private static LinkedList<UUID> currentlyDeadByPlayer;
+    private static LinkedList<UUID> currentlyDeadByPlayer = new LinkedList<UUID>();
     /**
      * For when a player dies, keep inventory if killed by player
      */
-    public static void onPlayerDeathProper(LivingEntity entity, DamageSource damageSource) {
-        if (currentlyDeadByPlayer == null) {
-            currentlyDeadByPlayer = new LinkedList<UUID>();
-        }
+    public static boolean onPlayerDeathProper(LivingEntity entity, DamageSource damageSource, float dmg) {
         if (damageSource.getAttacker() instanceof ServerPlayerEntity && entity instanceof ServerPlayerEntity) {
+            System.out.println("Player died!");
             ServerPlayerEntity player = (ServerPlayerEntity) entity;
             // Died to a player, so save inventroy and experience then clear inv
             // PlayerInf inf = new PlayerInf(player.getInventory(), player.experienceLevel, player.experienceProgress);
             currentlyDeadByPlayer.add(player.getUuid());
         }
+        return true;
     }
 
     public static void onRespawn(ServerPlayerEntity oldPlayer, ServerPlayerEntity newPlayer, boolean alive) {
+        System.out.println(currentlyDeadByPlayer);
         if (currentlyDeadByPlayer.contains(oldPlayer.getUuid()) && !alive) {
-            
-            oldPlayer.getInventory().clone(newPlayer.getInventory());
+            System.out.println("Restoring");
+            newPlayer.copyFrom(oldPlayer, true);
+            System.out.println("Copied");
             newPlayer.setHealth(20.0f);
+            System.out.println("Done");
         }
     }
 }
