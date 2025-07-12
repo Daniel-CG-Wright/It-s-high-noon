@@ -1,13 +1,7 @@
 package com.highnoon;
 
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.function.Supplier;
-
 import com.mojang.brigadier.context.CommandContext;
 
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.item.ItemStack;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;

@@ -5,14 +5,9 @@ import java.util.HashMap;
 
 import java.util.UUID;
 
-import com.mojang.brigadier.Command;
 import com.mojang.brigadier.context.CommandContext;
 
-import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
-import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.AfterDeath;
-import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.AllowDeath;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
-import net.minecraft.block.entity.VaultBlockEntity.Server;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.server.command.ServerCommandSource;
@@ -77,6 +72,7 @@ public class DuelManager {
   }
 
   public static int acceptChallenge(CommandContext<ServerCommandSource> context, ServerPlayerEntity target) throws IllegalStateException {
+    System.out.println(pending.toString());
     DuelSession session = pending.remove(target.getUuid());
     System.out.println(session);
     if (session == null) throw new IllegalStateException("No duel pending.");

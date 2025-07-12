@@ -2,8 +2,6 @@ package com.highnoon;
 
 import com.mojang.brigadier.context.CommandContext;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.world.ServerWorld;

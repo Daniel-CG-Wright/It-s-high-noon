@@ -1,10 +1,8 @@
 package com.highnoon;
 
 import java.util.LinkedList;
-import java.util.Map;
 import java.util.UUID;
 
-import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents.AfterRespawn;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerInventory;
