@@ -45,6 +45,7 @@ public class ArenaManager {
         }
 
         for (int i = 0; i < ARENA_SIZE_Z; i++) {
+            world.setBlockState(new BlockPos((int) northwestCorner.x + (ARENA_SIZE_X / 2), (int) northwestCorner.y + ARENA_SIZE_Y, (int) northwestCorner.z + i), Blocks.SEA_LANTERN.getDefaultState());
             for (int h = 1; h <= 20; h++) {
                 // West wall
                 world.setBlockState(new BlockPos((int) northwestCorner.x, (int) northwestCorner.y + h, (int) northwestCorner.z + i), Blocks.BARRIER.getDefaultState());
@@ -53,12 +54,13 @@ public class ArenaManager {
             }
         }
 
+
         // Store the northwest corner in the session for later clearing
         session.setArenaLocation(northwestCorner);
 
         Vec3d challengerSpawn = new Vec3d(
             northwestCorner.x + 5,
-            northwestCorner.y + 1,
+            northwestCorner.y + ARENA_SIZE_Y + 1,
             northwestCorner.z + ARENA_SIZE_Z / 2
         );
         Vec3d challengedSpawn = new Vec3d(

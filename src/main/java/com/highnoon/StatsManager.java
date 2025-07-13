@@ -20,7 +20,14 @@ public class StatsManager {
     private static void loadAllStats() {
         statsMap.clear();
         Path file = Path.of(FILE_NAME);
-        if (!Files.exists(file)) return;
+        if (!Files.exists(file)) {
+            try {
+                Files.createFile(file);
+            } catch (IOException e) {
+                System.err.println("Could not create stats file: " + e.getLocalizedMessage());
+                return;
+            }
+        }
         try (BufferedReader reader = Files.newBufferedReader(file)) {
             String line;
             while ((line = reader.readLine()) != null) {
@@ -45,6 +52,14 @@ public class StatsManager {
     // Saves all stats to the file
     private static void saveAllStats() {
         Path file = Path.of(FILE_NAME);
+        if (!Files.exists(file)) {
+            try {
+                Files.createFile(file);
+            } catch (IOException e) {
+                System.err.println("Could not create stats file: " + e.getLocalizedMessage());
+                return;
+            }
+        }
         try (BufferedWriter writer = Files.newBufferedWriter(file)) {
             for (Map.Entry<String, PlayerStats> entry : statsMap.entrySet()) {
                 PlayerStats stats = entry.getValue();
@@ -106,7 +121,7 @@ public class StatsManager {
 
     public static int showStats(CommandContext<ServerCommandSource> context, ServerPlayerEntity player) {
         PlayerStats stats = loadStats(player);
-        context.getSource().getServer().getPlayerManager().broadcast(
+        context.getSource().sendFeedback(() ->
             Text.literal("Player stats: " + stats.wins + " wins, " + stats.draws + " draws and " + stats.losses + " losses."), false);
         return 1;
     }

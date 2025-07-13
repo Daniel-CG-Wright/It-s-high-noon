@@ -18,9 +18,8 @@ public class KeepInvOnPvpDeath {
     /**
      * For when a player dies, keep inventory if killed by player
      */
-    public static boolean onPlayerDeathProper(LivingEntity entity, DamageSource damageSource, float dmg) {
+    public static void onPlayerDeathProper(LivingEntity entity, DamageSource damageSource) {
         if (damageSource.getAttacker() instanceof ServerPlayerEntity && entity instanceof ServerPlayerEntity) {
-            System.out.println("Player died!");
             ServerPlayerEntity player = (ServerPlayerEntity) entity;
             // Died to a player, so save inventroy and experience then clear inv
             // PlayerInf inf = new PlayerInf(player.getInventory(), player.experienceLevel, player.experienceProgress);
@@ -29,12 +28,13 @@ public class KeepInvOnPvpDeath {
                 invCopy[i] = player.getInventory().getStack(i).copy();
             }
             currentlyDeadByPlayer.put(player.getUuid(), new PlayerInf(invCopy, player.experienceLevel, player.experienceProgress));
+            player.experienceLevel = 0;
+            player.experienceProgress = 0;
+            player.getInventory().clear();
         }
-        return true;
     }
 
     public static void onRespawn(ServerPlayerEntity oldPlayer, ServerPlayerEntity newPlayer, boolean alive) {
-        System.out.println(currentlyDeadByPlayer);
         PlayerInf inf = currentlyDeadByPlayer.get(oldPlayer.getUuid());
         if (inf != null && !alive) {
             System.out.println("Restoring");
@@ -44,6 +44,7 @@ public class KeepInvOnPvpDeath {
             newPlayer.experienceLevel = inf.experienceLevel;
             newPlayer.experienceProgress = inf.experienceProgress;
             System.out.println("Copied");
+            currentlyDeadByPlayer.remove(oldPlayer.getUuid());
         }
     }
 }
