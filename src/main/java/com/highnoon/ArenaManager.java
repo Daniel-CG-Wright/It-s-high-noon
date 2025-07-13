@@ -2,6 +2,7 @@ package com.highnoon;
 
 import com.mojang.brigadier.context.CommandContext;
 
+import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.world.ServerWorld;
@@ -28,7 +29,9 @@ public class ArenaManager {
         for (int i = 0; i < ARENA_SIZE_X; i++) {
             for (int j = 0; j < ARENA_SIZE_Z; j++) {
                 for (int k = 0; k < ARENA_SIZE_Y; k++) {
-                    world.setBlockState(new BlockPos((int) northwestCorner.x + i, (int) northwestCorner.y + k, (int) northwestCorner.z + j), Blocks.STONE_BRICKS.getDefaultState());
+                    BlockState block = Blocks.STONE_BRICKS.getDefaultState();
+                    if (j % 2 == 0) { block = Blocks.SEA_LANTERN.getDefaultState(); }
+                    world.setBlockState(new BlockPos((int) northwestCorner.x + i, (int) northwestCorner.y + k, (int) northwestCorner.z + j), block);
                 }
             }
         }
@@ -45,7 +48,6 @@ public class ArenaManager {
         }
 
         for (int i = 0; i < ARENA_SIZE_Z; i++) {
-            world.setBlockState(new BlockPos((int) northwestCorner.x + (ARENA_SIZE_X / 2), (int) northwestCorner.y + ARENA_SIZE_Y, (int) northwestCorner.z + i), Blocks.SEA_LANTERN.getDefaultState());
             for (int h = 1; h <= 20; h++) {
                 // West wall
                 world.setBlockState(new BlockPos((int) northwestCorner.x, (int) northwestCorner.y + h, (int) northwestCorner.z + i), Blocks.BARRIER.getDefaultState());
@@ -81,7 +83,14 @@ public class ArenaManager {
         for (int i = 0; i < ARENA_SIZE_X; i++) {
             for (int j = 0; j < ARENA_SIZE_Z; j++) {
                 for (int k = 0; k < ARENA_SIZE_Y + 20; k++) {
-                    world.setBlockState(new BlockPos((int) northwestCorner.x + i, (int) northwestCorner.y + k, (int) northwestCorner.z + j), Blocks.AIR.getDefaultState());
+                    BlockPos pos = new BlockPos((int) northwestCorner.x + i, (int) northwestCorner.y + k, (int) northwestCorner.z + j);
+                    String name = world.getBlockState(pos).getBlock().getName().toString();
+                    if (name.contains("travelersbackpack")) {
+                        // Set to loser's location
+                        BlockPos newPos = session.loser.getBlockPos();
+                        world.setBlockState(newPos, world.getBlockState(pos));
+                    }
+                    world.setBlockState(pos, Blocks.AIR.getDefaultState());
                 }
             }
         }

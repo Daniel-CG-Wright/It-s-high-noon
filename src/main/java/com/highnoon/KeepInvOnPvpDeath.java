@@ -13,14 +13,15 @@ import net.minecraft.server.network.ServerPlayerEntity;
 
 public class KeepInvOnPvpDeath {
     
-    private static Map<UUID, PlayerInf> currentlyDeadByPlayer = new HashMap<UUID, PlayerInf>();
+    public static Map<UUID, PlayerInf> currentlyDeadByPlayer = new HashMap<UUID, PlayerInf>();
 
     /**
      * For when a player dies, keep inventory if killed by player
      */
-    public static void onPlayerDeathProper(LivingEntity entity, DamageSource damageSource) {
+    public static boolean onPlayerDeathProper(LivingEntity entity, DamageSource damageSource, float _dmg) {
         if (damageSource.getAttacker() instanceof ServerPlayerEntity && entity instanceof ServerPlayerEntity) {
             ServerPlayerEntity player = (ServerPlayerEntity) entity;
+            System.out.println(damageSource.getAttacker().getName().toString() + " did a thing");
             // Died to a player, so save inventroy and experience then clear inv
             // PlayerInf inf = new PlayerInf(player.getInventory(), player.experienceLevel, player.experienceProgress);
             ItemStack[] invCopy = new ItemStack[player.getInventory().size()];
@@ -28,10 +29,10 @@ public class KeepInvOnPvpDeath {
                 invCopy[i] = player.getInventory().getStack(i).copy();
             }
             currentlyDeadByPlayer.put(player.getUuid(), new PlayerInf(invCopy, player.experienceLevel, player.experienceProgress));
-            player.experienceLevel = 0;
-            player.experienceProgress = 0;
-            player.getInventory().clear();
+            // player.experienceLevel = 0;
+            // player.experienceProgress = 0;
         }
+        return true;
     }
 
     public static void onRespawn(ServerPlayerEntity oldPlayer, ServerPlayerEntity newPlayer, boolean alive) {

@@ -6,12 +6,16 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.TeleportTarget;
 
 public class DuelSession {    
     /** Initiator of challenge */
     private ServerPlayerEntity challenger;
     /** A challenged individual */
     private ServerPlayerEntity challenged;
+
+    public ServerPlayerEntity loser;
+    public ServerPlayerEntity winner;
 
     /** Where challenger last was when duel was accepted. */
     private Vec3d challengerOrigin;
@@ -78,8 +82,8 @@ public class DuelSession {
      */
     public void beginBattle(CommandContext<ServerCommandSource> context) {
         recordOriginalPositions();
-        challenger.setPosition(challengerSpawn);
-        challenged.setPosition(challengedSpawn);
+        challenger.teleportTo(new TeleportTarget(context.getSource().getWorld(), challengerSpawn, new Vec3d(0,0,0), 0f, 0f, null));
+        challenged.teleportTo(new TeleportTarget(context.getSource().getWorld(), challengedSpawn, new Vec3d(0,0,0), 0f, 0f, null));
         ticksLeft = 21600; // 180 * 20 for 3 minutes
         this.context = context;
     }
@@ -110,8 +114,9 @@ public class DuelSession {
 
     }
 
-    public void onLoss(ServerPlayerEntity loser) {
-        ServerPlayerEntity winner = loser.equals(challenger) ? challenged : challenger;
+    public void onLoss(ServerPlayerEntity _loser) {
+        loser = _loser;
+        winner = loser.equals(challenger) ? challenged : challenger;
         context.getSource().getServer().getPlayerManager().broadcast(
             Text.literal(winner.getName().getString() + " won the duel. " + loser.getName().getString() + " is a loser!"), false);
         
@@ -124,9 +129,17 @@ public class DuelSession {
             loser.setExperienceLevel(loser.experienceLevel - levelsWaged);
         }
         ArenaManager.clearArena(context, this);
+
+        // Add stats for win and loss
+        StatsManager.addWin(winner);
+        StatsManager.addLoss(loser);
     }
 
     public void endDraw() {
+        winner = challenger;
+        loser = challenged;
+        StatsManager.addDraw(challenger);
+        StatsManager.addDraw(challenged);
         // Restore original coordinates and inventory, and add a draw to each player's stats.
         restore();
         ArenaManager.clearArena(context, this);
