@@ -1,6 +1,8 @@
 package com.highnoon;
 
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.UUID;
 
 import net.minecraft.entity.LivingEntity;
@@ -11,7 +13,8 @@ import net.minecraft.server.network.ServerPlayerEntity;
 
 public class KeepInvOnPvpDeath {
     
-    private static LinkedList<UUID> currentlyDeadByPlayer = new LinkedList<UUID>();
+    private static Map<UUID, PlayerInf> currentlyDeadByPlayer = new HashMap<UUID, PlayerInf>();
+
     /**
      * For when a player dies, keep inventory if killed by player
      */
@@ -21,19 +24,26 @@ public class KeepInvOnPvpDeath {
             ServerPlayerEntity player = (ServerPlayerEntity) entity;
             // Died to a player, so save inventroy and experience then clear inv
             // PlayerInf inf = new PlayerInf(player.getInventory(), player.experienceLevel, player.experienceProgress);
-            currentlyDeadByPlayer.add(player.getUuid());
+            ItemStack[] invCopy = new ItemStack[player.getInventory().size()];
+            for (int i = 0; i < invCopy.length; i++) {
+                invCopy[i] = player.getInventory().getStack(i).copy();
+            }
+            currentlyDeadByPlayer.put(player.getUuid(), new PlayerInf(invCopy, player.experienceLevel, player.experienceProgress));
         }
         return true;
     }
 
     public static void onRespawn(ServerPlayerEntity oldPlayer, ServerPlayerEntity newPlayer, boolean alive) {
         System.out.println(currentlyDeadByPlayer);
-        if (currentlyDeadByPlayer.contains(oldPlayer.getUuid()) && !alive) {
+        PlayerInf inf = currentlyDeadByPlayer.get(oldPlayer.getUuid());
+        if (inf != null && !alive) {
             System.out.println("Restoring");
-            newPlayer.copyFrom(oldPlayer, true);
+            for (int i = 0; i < inf.inv.length; i++) {
+                newPlayer.getInventory().setStack(i, inf.inv[i]);
+            }
+            newPlayer.experienceLevel = inf.experienceLevel;
+            newPlayer.experienceProgress = inf.experienceProgress;
             System.out.println("Copied");
-            newPlayer.setHealth(20.0f);
-            System.out.println("Done");
         }
     }
 }
@@ -43,10 +53,8 @@ class PlayerInf {
     public float experienceProgress;
     public int experienceLevel;
 
-    public PlayerInf(PlayerInventory inventory, int _experienceLevel, float _experienceProgress) {
-        for (int i = 0; i < inventory.size(); i++) {
-            inv[i] = inventory.getStack(i).copy();
-        }
+    public PlayerInf(ItemStack[] inventory, int _experienceLevel, float _experienceProgress) {
+        inv = inventory;
         experienceLevel = _experienceLevel;
         experienceProgress = _experienceProgress;
     }
